@@ -1,23 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Love Animation</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Samira</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; background: #050205; font-family: 'Georgia', serif; }
+        canvas { display: block; }
+        #ui-layer {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; text-align: center;
+        }
+        .photo-frame {
+            width: 300px; height: 400px;
+            border: 8px solid white;
+            box-shadow: 0 0 50px rgba(255,192,203,0.5);
+            opacity: 0;
+            background-image: url('s.jpg'); /* Ensure s.jpg is in the same folder */
+            background-size: cover;
+            background-position: center;
+        }
+        .final-text {
+            color: #ffb6c1; font-size: 3rem;
+            text-shadow: 0 0 20px #ff1493; opacity: 0;
+        }
+    </style>
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+    <div id="ui-layer">
+        <div class="photo-frame" id="photo"></div>
+        <h1 class="final-text" id="finalMsg">I Love You 😗</h1>
+    </div>
+    <canvas id="canvas"></canvas>
 
-<div id="nameText"></div>
-<img id="photo" src="s.jpg" alt="photo">
+<script>
+/**
+ * CINEMATIC ENGINE
+ */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let width, height, particles = [];
 
-<!-- Butterfly -->
-<div id="butterfly">
-  <div class="wing left"></div>
-  <div class="wing right"></div>
-</div>
+// Initialize Canvas
+function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
 
-<script src="script.js"></script>
+class Particle {
+    constructor(x, y, color) {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.targetX = x;
+        this.targetY = y;
+        this.color = color;
+        this.size = Math.random() * 2 + 1;
+        this.alpha = Math.random();
+        this.velocity = { x: (Math.random() - 0.5) * 10, y: (Math.random() - 0.5) * 10 };
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = `rgb(${this.color})`;
+        ctx.fill();
+    }
+
+    update() {
+        // Smooth easing towards targets
+        this.x += (this.targetX - this.x) * 0.07;
+        this.y += (this.targetY - this.y) * 0.07;
+        this.alpha = Math.sin(Date.now() * 0.001 + this.x) * 0.5 + 0.5;
+    }
+}
+
+// Cinematic Timeline
+const tl = gsap.timeline();
+
+// 1. Scene: LOVE forms
+tl.to({}, { duration: 2, onStart: () => createTextParticles("LOVE", 150) });
+
+// 2. Scene: Tree Growth (Simplified by shifting particles to a tree-like canopy)
+tl.to({}, { duration: 3, delay: 2, onStart: () => createTreeStructure() });
+
+// 3. Scene: Name "Samira"
+tl.to({}, { duration: 3, delay: 2, onStart: () => createTextParticles("Samira", 180) });
+
+// 4. Scene: Photo Flash
+tl.to("#photo", { opacity: 1, duration: 1, scale: 1.1 });
+tl.to("#photo", { opacity: 0, duration: 1, delay: 3 });
+
+// 5. Scene: Rain and Lightning
+tl.to({}, { duration: 4, onStart: startRainEffect });
+
+// 6. Scene: Final Message
+tl.to("#finalMsg", { opacity: 1, duration: 2, delay: 2 });
+
+/**
+ * HELPER FUNCTIONS
+ */
+function createTextParticles(text, size) {
+    particles = [];
+    ctx.font = `bold ${size}px Georgia`;
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(text, width / 2, height / 2);
+
+    const data = ctx.getImageData(0, 0, width, height).data;
+    ctx.clearRect(0, 0, width, height);
+
+    for (let y = 0; y < height; y += 6) {
+        for (let x = 0; x < width; x += 6) {
+            if (data[(y * width + x) * 4 + 3] > 128) {
+                particles.push(new Particle(x, y, "255, 182, 193"));
+            }
+        }
+    }
+}
+
+function createTreeStructure() {
+    // Reposition current particles into a heart-shaped tree canopy
+    particles.forEach(p => {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * 200;
+        p.targetX = width / 2 + Math.cos(angle) * radius;
+        p.targetY = height / 2 - radius - 50;
+        p.color = "144, 238, 144"; // Transition to leaf green
+    });
+}
+
+function startRainEffect() {
+    // This triggers a background overlay change
+    gsap.to("body", { backgroundColor: "#0a0a10", duration: 2 });
+    // Flash Lightning
+    gsap.to("body", { backgroundColor: "#ffffff", duration: 0.1, repeat: 1, yoyo: true, delay: 2 });
+}
+
+function animate() {
+    ctx.fillStyle = 'rgba(5, 2, 5, 0.2)'; // Motion blur trail
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.globalCompositeOperation = "lighter";
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+    
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
 </body>
 </html>
