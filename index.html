@@ -6,155 +6,125 @@
     <title>For Samira</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background: #050205; 
-            overflow: hidden; 
-            font-family: 'serif'; 
-            height: 100vh;
-            width: 100vw;
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #050205; overflow: hidden; 
+            display: flex; justify-content: center; align-items: center;
         }
-        canvas { display: block; }
 
-        /* Mobile specific layers */
-        #overlay {
-            position: fixed;
-            top: 0; left: 0;
+        #stage {
+            position: relative;
             width: 100%; height: 100%;
             display: flex; justify-content: center; align-items: center;
-            pointer-events: none;
-            z-index: 10;
         }
 
-        .photo-frame {
-            width: 70vw; /* Phone size width */
-            height: 90vw;
-            border: 5px solid white;
-            box-shadow: 0 0 30px rgba(255, 105, 180, 0.4);
-            opacity: 0;
-            background: url('s.jpg') center/cover no-repeat;
-            border-radius: 10px;
-        }
-
-        .final-text {
+        /* Sabse pehle text layers */
+        .text-glow {
             position: absolute;
             color: #fff;
-            font-size: 2rem;
-            text-shadow: 0 0 15px #ff69b4;
-            opacity: 0;
+            font-family: 'Georgia', serif;
+            font-size: 3rem;
             text-align: center;
-            width: 100%;
+            text-shadow: 0 0 20px #ff69b4, 0 0 40px #ff1493;
+            opacity: 0;
+            filter: blur(5px);
         }
 
-        /* Rain container */
-        #rain-box {
-            position: absolute; width: 100%; height: 100%;
-            top: 0; opacity: 0;
+        /* Photo Frame */
+        #photo {
+            position: absolute;
+            width: 250px; height: 350px;
+            border: 6px solid #fff;
+            box-shadow: 0 0 30px rgba(255,105,180,0.5);
+            background: url('s.jpg') center/cover no-repeat;
+            opacity: 0;
+            border-radius: 15px;
+            z-index: 5;
         }
+
+        /* Rain effect */
+        .rain {
+            position: absolute; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            pointer-events: none; opacity: 0;
+        }
+
+        /* Particles Layer */
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <div class="photo-frame" id="photo"></div>
-        <div class="final-text" id="finalMsg">I Love You 😗</div>
+    <div id="stage">
+        <div id="word-love" class="text-glow">LOVE</div>
+        <div id="word-name" class="text-glow">Samira</div>
+        <div id="photo"></div>
+        <div id="final-msg" class="text-glow" style="font-size: 2rem;">I Love You 😗</div>
+        <div class="rain" id="rain-layer"></div>
     </div>
-    <div id="rain-box"></div>
-    <canvas id="mainCanvas"></canvas>
+    
+    <canvas id="c"></canvas>
 
 <script>
-/**
- * MOBILE CINEMATIC ENGINE
- */
-const canvas = document.getElementById('mainCanvas');
-const ctx = canvas.getContext('2d');
-let particles = [];
-let width, height;
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    let w, h;
 
-function init() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', init);
-init();
-
-class Particle {
-    constructor(x, y, color) {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.tx = x; this.ty = y; // Target positions
-        this.color = color;
-        this.size = Math.random() * 1.5 + 0.5;
-        this.alpha = 0;
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
     }
-    draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
-        ctx.fill();
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Cinematic Sequence
+    const tl = gsap.timeline();
+
+    // 1. LOVE Fades in with soft blur removal
+    tl.to("#word-love", { opacity: 1, filter: "blur(0px)", duration: 2.5, ease: "power2.out" });
+    tl.to("#word-love", { opacity: 0, filter: "blur(10px)", duration: 1.5, delay: 1 });
+
+    // 2. SAMIRA Name
+    tl.to("#word-name", { opacity: 1, filter: "blur(0px)", duration: 2.5, ease: "elastic.out(1, 0.5)" });
+    tl.to("#word-name", { opacity: 0, scale: 1.5, duration: 1.5, delay: 1.5 });
+
+    // 3. Photo Flash
+    tl.to("#photo", { opacity: 1, scale: 1, duration: 1.2, ease: "power4.out" });
+    tl.to("body", { backgroundColor: "#1a1a2e", duration: 2 }); // Mood Change
+    tl.to("#photo", { opacity: 0, duration: 1, delay: 2.5 });
+
+    // 4. Lightning & Rain
+    tl.to("#rain-layer", { opacity: 1, duration: 1 });
+    tl.to("body", { backgroundColor: "#fff", duration: 0.1, repeat: 1, yoyo: true }); // Lightning
+    tl.to("body", { backgroundColor: "#050205", duration: 1 });
+
+    // 5. Final Message
+    tl.to("#final-msg", { opacity: 1, filter: "blur(0px)", duration: 2, delay: 1 });
+
+    // Background Particle Loop (Low CPU intensity for Mobile)
+    let dots = [];
+    for(let i=0; i<40; i++) {
+        dots.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 2,
+            v: Math.random() * 0.5 + 0.2
+        });
     }
-    update() {
-        this.x += (this.tx - this.x) * 0.08;
-        this.y += (this.ty - this.y) * 0.08;
-        if(this.alpha < 1) this.alpha += 0.02;
+
+    function animate() {
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = "rgba(255, 182, 193, 0.5)";
+        dots.forEach(d => {
+            d.y -= d.v;
+            if(d.y < 0) d.y = h;
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+            ctx.fill();
+        });
+        requestAnimationFrame(animate);
     }
-}
-
-// 1. Text to Particles function (Mobile optimized resolution)
-function spawnText(text) {
-    particles = [];
-    ctx.clearRect(0, 0, width, height);
-    ctx.font = `bold ${width/5}px Georgia`; // Adaptive font size
-    ctx.textAlign = "center";
-    ctx.fillText(text, width/2, height/2);
-
-    const imgData = ctx.getImageData(0, 0, width, height).data;
-    ctx.clearRect(0, 0, width, height);
-
-    for (let y = 0; y < height; y += 8) { // Step 8 for mobile performance
-        for (let x = 0; x < width; x += 8) {
-            if (imgData[(y * width + x) * 4 + 3] > 128) {
-                particles.push(new Particle(x, y, "255, 192, 203"));
-            }
-        }
-    }
-}
-
-// 2. ANIMATION TIMELINE
-const tl = gsap.timeline();
-
-// Step 1: LOVE word
-tl.to({}, { duration: 1, onStart: () => spawnText("LOVE") });
-
-// Step 2: Samira Name (Magical transition)
-tl.to({}, { duration: 3, delay: 2, onStart: () => spawnText("Samira") });
-
-// Step 3: Photo Flash
-tl.to("#photo", { opacity: 1, scale: 1.05, duration: 1.5, delay: 1 });
-tl.to("#photo", { opacity: 0, scale: 0.9, duration: 1, delay: 2 });
-
-// Step 4: Lightning & Rain
-tl.to("body", { backgroundColor: "#111", duration: 1 });
-tl.to("body", { backgroundColor: "#fff", duration: 0.1, repeat: 1, yoyo: true, delay: 0.5 }); // Lightning
-tl.to("body", { backgroundColor: "#050205", duration: 1 });
-
-// Step 5: Final Message
-tl.to({}, { duration: 0.5, onStart: () => { particles = []; } }); // Clear canvas
-tl.to("#finalMsg", { opacity: 1, y: -20, duration: 2 });
-
-// Main Loop
-function render() {
-    ctx.fillStyle = 'rgba(5, 2, 5, 0.15)';
-    ctx.fillRect(0, 0, width, height);
-    
-    particles.forEach(p => {
-        p.update();
-        p.draw();
-    });
-    requestAnimationFrame(render);
-}
-render();
-
+    animate();
 </script>
 </body>
 </html>
