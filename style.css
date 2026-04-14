@@ -2,22 +2,29 @@ body {
   margin: 0;
   overflow: hidden;
   background: black;
-  color: white;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
 }
+
+/* Canvas */
 canvas {
   position: absolute;
   top: 0;
   left: 0;
 }
-#text {
+
+/* Name text */
+#nameText {
   position: absolute;
   width: 100%;
-  text-align: center;
   top: 40%;
+  text-align: center;
   font-size: 40px;
+  color: cyan;
   opacity: 0;
+  transition: opacity 1s ease;
 }
+
+/* Photo */
 #photo {
   position: absolute;
   top: 50%;
@@ -25,18 +32,40 @@ canvas {
   transform: translate(-50%, -50%);
   display: none;
   width: 250px;
+  border-radius: 15px;
 }
 
-/* Real butterfly */
-.butterfly {
+/* Butterfly */
+#butterfly {
   position: absolute;
-  width: 40px;
-  height: 40px;
-  background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Butterfly_icon.svg/1024px-Butterfly_icon.svg.png') no-repeat center/contain;
-  animation: fly 5s linear forwards;
+  width: 50px;
+  height: 50px;
+  display: none;
 }
 
-@keyframes fly {
-  0% { transform: translate(0,0); opacity:1; }
-  100% { transform: translate(300px,-300px); opacity:1; }
+/* Wings */
+.wing {
+  position: absolute;
+  width: 25px;
+  height: 50px;
+  background: pink;
+  border-radius: 50%;
+  animation: flap 0.3s infinite;
+}
+
+.left {
+  left: 0;
+  transform-origin: right;
+}
+
+.right {
+  right: 0;
+  transform-origin: left;
+}
+
+/* Wing animation */
+@keyframes flap {
+  0%   { transform: rotateY(0deg); }
+  50%  { transform: rotateY(60deg); }
+  100% { transform: rotateY(0deg); }
 }
