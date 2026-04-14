@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+  color: white;
+  font-family: Arial;
+}
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+#text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 40%;
+  font-size: 40px;
+  opacity: 0;
+}
+#photo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  width: 250px;
+}
+
+/* Real butterfly */
+.butterfly {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Butterfly_icon.svg/1024px-Butterfly_icon.svg.png') no-repeat center/contain;
+  animation: fly 5s linear forwards;
+}
+
+@keyframes fly {
+  0% { transform: translate(0,0); opacity:1; }
+  100% { transform: translate(300px,-300px); opacity:1; }
+}
